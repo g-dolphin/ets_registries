@@ -1,0 +1,31 @@
+site_name: ETS Registries
+repo_name: ets_registries
+theme:
+  name: material
+plugins:
+  - search
+  - mkdocstrings:
+      handlers:
+        python:
+          paths: ["code"]
+          options:
+            docstring_style: google
+            show_source: false
+nav:
+  - Home: index.md
+  - Getting started: getting-started.md
+  - Pipeline: pipeline.md
+  - Data sources: data-sources.md
+  - Schemas: _generated/schemas.md
+  - Validation: validation.md
+  - Concordance: concordance.md
+  - ETS:
+      - EU ETS: ets/euets.md
+      - UK ETS: ets/ukets.md
+      - California: ets/california.md
+  - Reference:
+      - Pipeline: reference/pipeline.md
+      - Harmonize: reference/harmonize.md
+      - EU ETS: reference/euets.md
+      - UK ETS: reference/ukets.md
+      - California: reference/california.md
