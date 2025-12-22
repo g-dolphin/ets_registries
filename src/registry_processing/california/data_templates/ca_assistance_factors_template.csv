@@ -1,0 +1,7 @@
+# Optional. If you don't provide AF, the estimator defaults to 1.
+# You can provide either (sector, year, assistance_factor) or (sector, vintage, assistance_factor).
+sector,year,assistance_factor
+Refining and Hydrogen Production,,
+Cement, Lime, Clay, and Gypsum,,
+Oil and Gas Extraction,,
+Other,,
