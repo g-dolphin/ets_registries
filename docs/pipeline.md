@@ -16,10 +16,12 @@ The top-level entrypoint is `registry_processing.pipeline`.
 
 - Facility-level CSV: one row per facility-year per system
 - Sector-level CSV: one row per year × country/region × NACE code per system and allocation metric
+- ISIC3 sector-level CSV: one row per year × country/region × ISIC 3-digit code per system and allocation metric
+
+ISIC3 codes are derived from `isic4_code` by taking the first three digits; 1–2 digit codes are right-padded with zeros.
 
 ## Allocation metrics
 
 - `observed`: taken directly from the system’s published allocation (EU/UK)
 - `reconstructed`: facility-level allocation reconstructed from sector totals (California)
 - `counterfactual`: Option 3 hybrid within-sector reallocation (all systems where feasible)
-

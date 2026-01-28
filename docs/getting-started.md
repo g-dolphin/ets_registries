@@ -23,7 +23,8 @@ python3 -m registry_processing.pipeline \
   --ca-mrr-raw-dir _raw/california \
   --ca-allocation-sector-csv _raw/california/nc-allocation_v2023.csv \
   --out-facility _output/facility_level.csv \
-  --out-sector _output/sector_level.csv
+  --out-sector _output/sector_level.csv \
+  --out-sector-isic3 _output/sector_level_isic3.csv
 ```
 
 If you only want a subset of systems, omit the corresponding inputs.

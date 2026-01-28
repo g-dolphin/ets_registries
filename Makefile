@@ -7,6 +7,7 @@ CA_MRR_DIR ?= _raw/california/emissions
 CA_ALLOCATION_SECTOR_CSV ?= _raw/california/allowanceAllocation/nc-allocation_v2023.csv
 OUT_FACILITY ?= _output/facility_level.csv
 OUT_SECTOR ?= _output/sector_level.csv
+OUT_SECTOR_ISIC3 ?= _output/sector_level_isic3.csv
 
 .PHONY: run
 
@@ -18,4 +19,5 @@ run:
 		--ca-mrr-raw-dir $(CA_MRR_DIR) \
 		--ca-allocation-sector-csv $(CA_ALLOCATION_SECTOR_CSV) \
 		--out-facility $(OUT_FACILITY) \
-		--out-sector $(OUT_SECTOR)
+		--out-sector $(OUT_SECTOR) \
+		--out-sector-isic3 $(OUT_SECTOR_ISIC3)

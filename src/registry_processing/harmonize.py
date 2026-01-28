@@ -51,6 +51,22 @@ SECTOR_COLS_EU_SCHEMA = [
     "isic4_code",
 ]
 
+ISIC3_COLS_SCHEMA = [
+    "reportedInSystem_id",
+    "year",
+    "country_id",
+    "isic3_code",
+    "allocatedFree",
+    "allocatedNewEntrance",
+    "allocatedTotal",
+    "allocated10c",
+    "verified",
+    "surrendered",
+    "balance",
+    "penalty",
+    "free_share",
+]
+
 
 @dataclass(frozen=True)
 class ConcordanceRow:
@@ -230,4 +246,83 @@ def build_sector_output_from_facility(
         if c not in grp.columns:
             grp[c] = np.nan
     grp = grp[SECTOR_COLS_EU_SCHEMA]
+    return grp
+
+
+def _isic_digits(x) -> str:
+    if pd.isna(x):
+        return ""
+    s = str(x).strip()
+    if s == "":
+        return ""
+    try:
+        f = float(s)
+        if f.is_integer():
+            s = str(int(f))
+        else:
+            s = str(f).replace(".", "")
+    except ValueError:
+        pass
+    return "".join(ch for ch in s if ch.isdigit())
+
+
+def isic3_code_from_isic4(isic4_series: pd.Series) -> pd.Series:
+    digits = isic4_series.apply(_isic_digits)
+
+    def _to_isic3(s: str) -> str | float:
+        if not s:
+            return np.nan
+        if len(s) >= 3:
+            return s[:3]
+        return s.ljust(3, "0")
+
+    return digits.apply(_to_isic3)
+
+
+def build_isic3_output_from_sector(
+    sector: pd.DataFrame,
+    isic4_col: str = "isic4_code",
+) -> pd.DataFrame:
+    """Aggregate a sector-level table to ISIC 3-digit groups."""
+    df = sector.copy()
+    if isic4_col in df.columns:
+        df["isic3_code"] = isic3_code_from_isic4(df[isic4_col])
+    else:
+        df["isic3_code"] = np.nan
+
+    num_cols = [
+        "allocatedFree",
+        "allocatedNewEntrance",
+        "allocatedTotal",
+        "allocated10c",
+        "verified",
+        "surrendered",
+        "balance",
+        "penalty",
+    ]
+    for c in num_cols:
+        if c in df.columns:
+            df[c] = pd.to_numeric(df[c], errors="coerce")
+
+    grp = (
+        df.groupby(["reportedInSystem_id", "year", "country_id", "isic3_code"], dropna=False)
+        .agg(
+            allocatedFree=("allocatedFree", lambda x: x.sum(min_count=1)),
+            allocatedNewEntrance=("allocatedNewEntrance", lambda x: x.sum(min_count=1)),
+            allocatedTotal=("allocatedTotal", lambda x: x.sum(min_count=1)),
+            allocated10c=("allocated10c", lambda x: x.sum(min_count=1)),
+            verified=("verified", lambda x: x.sum(min_count=1)),
+            surrendered=("surrendered", lambda x: x.sum(min_count=1)),
+            penalty=("penalty", lambda x: x.sum(min_count=1)),
+        )
+        .reset_index()
+    )
+
+    grp["balance"] = grp["allocatedTotal"] - grp["surrendered"]
+    grp["free_share"] = grp["allocatedFree"] / grp["verified"]
+
+    for c in ISIC3_COLS_SCHEMA:
+        if c not in grp.columns:
+            grp[c] = np.nan
+    grp = grp[ISIC3_COLS_SCHEMA]
     return grp

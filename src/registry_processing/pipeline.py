@@ -24,6 +24,7 @@ from .harmonize import (
     SECTOR_COLS_EU_SCHEMA,
     add_validation_flags_facility,
     build_sector_output_from_facility,
+    build_isic3_output_from_sector,
 )
 
 from .euets.ingest_facility import read_euets_facility_year
@@ -76,6 +77,7 @@ def run_pipeline(
     ca_allocation_sector_csv: Path | None,
     out_facility: Path,
     out_sector: Path,
+    out_sector_isic3: Path | None = None,
     alpha_counterfactual: float = 0.5,
 ) -> tuple[pd.DataFrame, pd.DataFrame]:
     facility_frames: List[pd.DataFrame] = []
@@ -166,6 +168,18 @@ def run_pipeline(
     facility.to_csv(out_facility, index=False)
     sector.to_csv(out_sector, index=False)
 
+    if out_sector_isic3 is not None:
+        isic3_frames: List[pd.DataFrame] = []
+        for metric in sector["allocation_metric"].dropna().unique():
+            sec_metric = sector[sector["allocation_metric"] == metric].copy()
+            isic3 = build_isic3_output_from_sector(sec_metric)
+            isic3["allocation_metric"] = metric
+            isic3_frames.append(isic3)
+        if isic3_frames:
+            isic3_out = pd.concat(isic3_frames, ignore_index=True)
+            out_sector_isic3.parent.mkdir(parents=True, exist_ok=True)
+            isic3_out.to_csv(out_sector_isic3, index=False)
+
     return facility, sector
 
 
@@ -189,6 +203,7 @@ def main() -> None:
 
     p.add_argument("--out-facility", type=Path, required=True)
     p.add_argument("--out-sector", type=Path, required=True)
+    p.add_argument("--out-sector-isic3", type=Path, default=None)
     p.add_argument(
         "--alpha-counterfactual",
         type=float,
@@ -208,6 +223,7 @@ def main() -> None:
         ca_allocation_sector_csv=args.ca_allocation_sector_csv,
         out_facility=args.out_facility,
         out_sector=args.out_sector,
+        out_sector_isic3=args.out_sector_isic3,
         alpha_counterfactual=args.alpha_counterfactual,
     )
 
